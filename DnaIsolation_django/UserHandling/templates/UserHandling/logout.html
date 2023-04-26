@@ -1,0 +1,9 @@
+{% extends "Main/base.html" %}
+{% block content %}
+<h2>Zostałeś wylogowany.</h2>
+<div class="bordet-top">
+    <small class="text-muted">
+        <a href="{% url 'user-login' %}"> Zaloguj ponownie.</a>
+    </small>
+</div>
+{% endblock %}

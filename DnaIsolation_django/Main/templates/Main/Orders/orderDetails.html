@@ -1,0 +1,62 @@
+{% extends "Main/base.html" %}
+{% load static %}
+{% block content %}
+    <h1>Zlecenie</h1>
+    <div class="row">
+
+
+      <div class="col-md-4">
+            <h4>Numer</h4>
+            <p>{{ order.number }}</p>
+
+            <h4>Status</h4>
+            <p>{{ order.status }}</p>
+
+            <h4>Data wykonania</h4>
+            <p>{{ order.finishDate }}</p>
+
+            <h4>Wykonawca</h4>
+            <p>{{ order.contractor }}</p>
+      </div>
+
+      <div class="col-md-4">
+          <h4>Zlecający</h4>
+          <p>{{ order.commissioner.name }}</p>
+
+          <h4>Osoba kontaktowa</h4>
+          <p>{{ order.commissioner.pointOfContact }}</p>
+
+          <h4>E-Mail</h4>
+          <p>{{ order.commissioner.email }}</p>
+
+          <h4>Telefon</h4>
+          <p>{{ order.commissioner.phoneNumber }}</p>
+
+      </div>
+
+      <div class="col-md-3">
+          <a href="{% url 'order-delete-confirm' order.number %}">
+              <button class="btn btn-block my-2">Usuń</button>
+          </a>
+          <a href="{% url 'order-edit' order.number %}">
+              <button class="btn btn-block my-2">Edytuj zamówienie</button>
+          </a>
+          <a href="{% url 'order-edit-company-check' order.number %}">
+              <button class="btn btn-block my-2">Edytuj zleceniodawcę</button>
+          </a>
+      </div>
+    </div>
+
+    <h2>Uwagi</h2>
+    <div class="col-md-9">
+            {{order.notes}}
+    </div>
+    <h2>Załączniki</h2>
+    <div class="col-md-9">
+        {% for file in files %}
+            <a href="{% url 'download-linked' file.id %}">{{file.file.name}}</a><br>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

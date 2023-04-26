@@ -1,0 +1,12 @@
+{% extends "Main/base.html" %}
+{% load static %}
+{% block content %}
+
+<h3>Czy na pewno chcesz usunąć plik o nazwie {{file.name}}?</h3>
+<form method="POST" action="{% url 'file-delete' pk=file.id %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Usuń</button>
+</form>
+
+
+{% endblock %}

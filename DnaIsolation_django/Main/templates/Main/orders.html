@@ -1,0 +1,56 @@
+{% extends "Main/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row mt-3">
+    <div class="col-md-9">
+      <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>Nr</th>
+                <th>Zlecający</th>
+                <th>Status</th>
+                <th>Data</th>
+                  <th>Szczegóły</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                  <td>{{ order.number }}</td>
+                  <td>{{ order.commissioner.name }}</td>
+                  <td>{{ order.status }}</td>
+                  <td>{{ order.finishDate }}</td>
+                  <td><a href="{% url 'order-details' order.number %}">Szczegóły</a></td>
+              </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5">Brak zleceń.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'order-select-company' %}">
+            <button class="btn btn-block">Dodaj Nowe</button>
+        </a>
+        <form method="POST" class="border rounded mt-3 p-2">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                {{ search_form|crispy }}
+            </fieldset>
+
+            <div class="form-group">
+                <button class="btn btn-block" type="submit">Szukaj</button>
+            </div>
+
+        </form>
+
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "Main/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <div class="content-section">
+            <form method="POST">
+                <fieldset class="form-group">
+                    {{ form|crispy }}
+                </fieldset>
+
+                <div class="form-group">
+                    <button class="btn" type="submit">Dodaj</button>
+                </div>
+
+            </form>
+    </div>
+
+{% endblock %}

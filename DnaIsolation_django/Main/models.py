@@ -56,6 +56,9 @@ class LinkedFile(models.Model):
     file = models.FileField(upload_to="attachments/%Y/%m/%d/")
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.file.name
+
 
 class SimpleFile(models.Model):
     name = models.CharField(max_length=64)

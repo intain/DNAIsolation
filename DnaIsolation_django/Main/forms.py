@@ -33,8 +33,10 @@ class OrderCreationForm(forms.ModelForm):
     notes = forms.CharField(label='Uwagi', widget=forms.Textarea(attrs={'rows': 5, 'cols': 40}), required=False)
     files = forms.FileField(
         label="Załączniki",
-        widget=forms.ClearableFileInput(attrs={"multiple": True}),
+        widget=forms.FileInput(attrs={"multiple": True}),
         required=False)
+
+
 
     class Meta:
         model = models.Order
@@ -43,6 +45,18 @@ class OrderCreationForm(forms.ModelForm):
             'finishDate': forms.widgets.DateInput(attrs={'type': 'date'})
         }
 
+
+class OrderEditForm(OrderCreationForm):
+    files_to_delete = forms.ModelMultipleChoiceField(
+        queryset=models.LinkedFile.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        queryset = kwargs.pop('queryset')
+        super().__init__(*args, **kwargs)
+        self.fields['files_to_delete'].queryset = queryset
 
 class CompanyCreateForm(forms.ModelForm):
     name = forms.CharField(label="Nazwa")

@@ -56,10 +56,8 @@ def orderSelectCompany(request):
     return render(request, 'Main/Orders/orderSelectCompany.html', {'company_select_form': form })
 
 
-@login_required
 def linkFiles(order, request):
     for file in request.FILES.getlist('files'):
-        print('A FILE IS BEING PROCESSED')
         linked_file = models.LinkedFile()
         linked_file.order = order
         linked_file.file = file
@@ -142,16 +140,15 @@ def orderDeleteConfirm(request, pk):
     return render(request, 'Main/Orders/orderDeleteConfirm.html', context)
 
 
+def deleteAttachedFiles(order):
+    files_attached = models.LinkedFile.objects.filter(Q(order__number=order.number))
+    for file in files_attached:
+        removeFileObject(file)
+
 @login_required
 def orderDelete(request, pk):
     obj = get_object_or_404(models.Order, pk=pk)
-
-    filesAttached = models.LinkedFile.objects.filter(Q(order__number=obj.number))
-    for file in filesAttached:
-        if file.file:
-            if os.path.isfile(file.file.path):
-                os.remove(file.file.path)
-
+    deleteAttachedFiles(obj)
     obj.delete()
     messages.add_message(request, messages.SUCCESS, 'Pomyślnie usunięto zlecenie')
     return redirect('main-orders')
@@ -160,11 +157,18 @@ def orderDelete(request, pk):
 @login_required
 def orderEdit(request, pk):
     order = get_object_or_404(models.Order, pk=pk)
+    form = forms.OrderEditForm(
+        request.POST or None, instance=order, queryset=models.LinkedFile.objects.filter(Q(order__number=order.number)))
 
-    form = forms.OrderCreationForm(request.POST or None, instance=order)
     if form.is_valid():
         form.save()
         messages.add_message(request, messages.SUCCESS, 'Pomyślnie zaktualizowano zlecenie.')
+        selected_files = form.cleaned_data['files_to_delete']
+        for file in selected_files:
+            removeFileObject(file)
+
+        linkFiles(order, request)
+
         return redirect(reverse('order-details', args=[pk]))
 
     context = {
@@ -223,7 +227,7 @@ def materials(request):
             name = form.cleaned_data['name']
             supplier_name = form.cleaned_data['supplier_name']
 
-            materialsToDisplay = models.Order.objects.filter(
+            materialsToDisplay = models.Material.objects.filter(
                 Q(name__icontains=name) & Q(supplier__name__icontains=supplier_name)
             )
 
@@ -329,7 +333,7 @@ def materialDelete(request, pk):
 
 @login_required
 def materialEdit(request, pk):
-    material = get_object_or_404(models.Order, pk=pk)
+    material = get_object_or_404(models.Material, pk=pk)
 
     form = forms.MaterialCreateForm(request.POST or None, instance=material)
     if form.is_valid():
@@ -418,15 +422,18 @@ def fileDeleteConfirm(request, pk):
     return render(request, 'Main/Files/fileDeleteConfirm.html', context)
 
 
-@login_required
-def fileDelete(request, pk):
-    obj = get_object_or_404(models.SimpleFile, pk=pk)
-
+def removeFileObject(obj):
     if obj.file:
         if os.path.isfile(obj.file.path):
             os.remove(obj.file.path)
 
     obj.delete()
+
+@login_required
+def fileDelete(request, pk):
+    obj = get_object_or_404(models.SimpleFile, pk=pk)
+
+    removeFileObject(obj)
     messages.add_message(request, messages.SUCCESS, 'Pomyślnie usunięto plik')
     return redirect('main-files')
 

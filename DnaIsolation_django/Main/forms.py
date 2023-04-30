@@ -50,7 +50,8 @@ class OrderEditForm(OrderCreationForm):
     files_to_delete = forms.ModelMultipleChoiceField(
         queryset=models.LinkedFile.objects.none(),
         widget=forms.CheckboxSelectMultiple,
-        required=False
+        required=False,
+        label="Załączniki do usunięcia"
     )
 
     def __init__(self, *args, **kwargs):

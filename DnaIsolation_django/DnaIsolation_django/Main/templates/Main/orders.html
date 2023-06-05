@@ -1,0 +1,60 @@
+{% extends "Main/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row mt-3">
+    <div class="col-md-10">
+      <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                  <th>Nr</th>
+                  <th>Zlecający</th>
+                  <th>Data</th>
+                  <th>Status</th>
+                  <th>Uwagi</th>
+                  <th>Załączniki</th>
+                  <th>Szczegóły</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                  <td>{{ order.0.number }}</td>
+                  <td>{{ order.0.commissioner.name }}</td>
+                  <td>{{ order.0.receiveDate }}</td>
+                  <td>{{ order.0.status }}</td>
+                  <td>{{ order.0.notes }}</td>
+                  <td>{% for file in order.1 %}<a href="{% url 'download-linked' file.id %}">{{file.file.name}}</a><br>{% endfor %}</td>
+                  <td><a href="{% url 'order-details' order.0.number %}">Szczegóły</a></td>
+              </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7">Brak zleceń.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="{% url 'order-select-company' %}">
+            <button class="btn btn-block">Dodaj Nowe</button>
+        </a>
+        <form method="POST" class="border rounded mt-3 p-2">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                {{ search_form|crispy }}
+            </fieldset>
+
+            <div class="form-group">
+                <button class="btn btn-block" type="submit">Szukaj</button>
+            </div>
+
+        </form>
+
+
+    </div>
+</div>
+
+{% endblock %}

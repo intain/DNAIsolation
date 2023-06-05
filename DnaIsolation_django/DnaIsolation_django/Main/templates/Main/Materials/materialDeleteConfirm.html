@@ -1,0 +1,12 @@
+{% extends "Main/base.html" %}
+{% load static %}
+{% block content %}
+
+<h3>Czy na pewno chcesz usunąć materiał o numerze {{material.number}} od {{material.supplier.name}}?</h3>
+<form method="POST" action="{% url 'material-delete' pk=material.number %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Usuń</button>
+</form>
+
+
+{% endblock %}

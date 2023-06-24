@@ -1,0 +1,15 @@
+{% extends "Main/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+ <h3>Operacje</h3>
+    <ul class="list-group">
+    {% for op in operations %}
+        <li class="list-group-item">
+            {{ op.message }}
+        </li>
+    {% empty %}
+        Brak operacji.
+    {% endfor %}
+    </ul>
+{% endblock %}

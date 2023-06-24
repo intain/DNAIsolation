@@ -13,7 +13,7 @@
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-light">
-              <div class="container">
+              <div class="container-fluid">
                   <div class="navbar-brand" href="/">Izolacja DNA</div>
                   <div class="d-flex ml-auto">
                       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#globalNavbar" aria-controls="globalNavbar" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
@@ -27,6 +27,7 @@
                       <ul class="navbar-nav mr-auto order-1">
                           <li class="nav-item"><a class="nav-link" href="{% url 'main-orders' %}">Zlecenia</a></li>
                           <li class="nav-item"><a class="nav-link" href="{% url 'main-materials' %}">Magazyn</a></li>
+                          <li class="nav-item"><a class="nav-link" href="{% url 'main-operations' %}">Operacje</a></li>
                           <li class="nav-item"><a class="nav-link" href="{% url 'main-files' %}">Załączniki</a></li>
                       </ul>
                       <ul class="navbar-nav d-none d-lg-flex ml-2 order-3">
@@ -43,7 +44,7 @@
 
 
 
-    <main role="main" class="container border-top">
+    <main role="main" class="container-fluid border-top">
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{message.tags}} mt-3">{{message}}</div>

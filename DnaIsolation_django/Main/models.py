@@ -22,7 +22,7 @@ class Order(models.Model):
         choices=[
             ("Genomed", "Genomed"),
             ("A&A", "A&A")])
-    finishDate = models.DateField()
+    receiveDate = models.DateField()
     status = models.CharField(
         max_length=16,
         choices=[
@@ -36,6 +36,15 @@ class Order(models.Model):
     files = models.FileField(upload_to="uploads/%Y/%m/%d/", null=True)
 
 
+class Operation(models.Model):
+    flight = models.CharField(max_length=64)
+    deliveryDate = models.DateField()
+    expirationDate = models.DateField()
+    openDate = models.DateField()
+    count = models.IntegerField()
+    is_archived = models.BooleanField(default=False)
+
+
 class Material(models.Model):
     number = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
@@ -43,13 +52,16 @@ class Material(models.Model):
        max_length=16, choices=[
             ("Liczba reakcji", "Liczba reakcji"),
             ("Zestaw", "Zestaw")])
-    supplier = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
-    count = models.PositiveIntegerField()
-    action = models.CharField(
-        max_length=16, choices=[
-            ("Dodanie", "Dodanie"),
-            ("Usunięcie", "Usunięcie")])
+    count = models.PositiveIntegerField(default=0)
+    operations = models.ManyToManyField(Operation)
     notes = models.TextField()
+
+    def get_count(self):
+        full_count = 0
+        for op in self.operations.all():
+            if not op.is_archived:
+                full_count += op.count
+        return full_count
 
 
 class LinkedFile(models.Model):
@@ -63,3 +75,9 @@ class LinkedFile(models.Model):
 class SimpleFile(models.Model):
     name = models.CharField(max_length=64)
     file = models.FileField(upload_to="uploads/%Y/%m/%d/")
+
+
+class OperationLogMessage(models.Model):
+    message = models.CharField(max_length=64)
+
+

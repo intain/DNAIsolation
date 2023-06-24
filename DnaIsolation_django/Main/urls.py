@@ -21,12 +21,19 @@ urlpatterns = [
     path('file/add/', views.fileAdd, name='file-add'),
 
     path('materials', views.materials, name='main-materials'),
-    path('material/select_company', views.materialSelectCompany, name='material-select-company'),
-    path('material/create/<int:pk>/', views.materialCreate, name='material-create'),
-    path('material/create/new_company', views.materialCreateNewCompany, name='material-create-newcompany'),
+    path('material/create', views.materialCreate, name='material-create'),
     path('material/detail/<int:pk>/', views.materialDetailView, name='material-details'),
     path('material/delete_confirm/<int:pk>/', views.materialDeleteConfirm, name='material-delete-confirm'),
     path('material/delete/<int:pk>/', views.materialDelete, name='material-delete'),
     path('material/edit/<int:pk>/', views.materialEdit, name='material-edit'),
     path('material/edit_company_confirm/<int:pk>/', views.materialEditCompanyCheck, name='material-edit-company-check'),
+
+    path('material/add_operation/<int:pk>/', views.materialAddOperation, name='material-add-operation'),
+    path('material/operation_list/<int:pk>/', views.materialOperationList, name='material-operation-list'),
+
+    path('material/delete_operation/<int:mat_pk>/<int:op_id>/', views.materialDeleteOperation, name='material-delete-operation'),
+    path('material/archive_operation/<int:mat_pk>/<int:op_id>/', views.materialArchiveOperation, name='material-archive-operation'),
+    path('material/dearchive_operation/<int:mat_pk>/<int:op_id>/', views.materialDearchiveOperation, name='material-dearchive-operation'),
+
+    path('operation_log', views.operationLog, name='main-operations'),
 ]

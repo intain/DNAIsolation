@@ -1,0 +1,46 @@
+{% extends "Main/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row mt-3">
+    <div class="col-md-12">
+      <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                  <th>Lot</th>
+                  <th>Data dostawy</th>
+                  <th>Data ważności</th>
+                  <th>Data otwarcia</th>
+                  <th>Stan</th>
+                  <th>Usuń</th>
+                  <th>Archiwizuj</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for op in operations %}
+              <tr style="color: {% if op.is_archived %}silver{% else %}black{% endif %}">
+                  <td>{{ op.flight }}</td>
+                  <td>{{ op.deliveryDate }}</td>
+                  <td>{{ op.expirationDate }}</td>
+                  <td>{{ op.openDate }}</td>
+                  <td>{{ op.count }}</td>
+                  <td><a href="{% url 'material-delete-operation' material.number op.id %}">Usuń</a></td>
+                  {% if op.is_archived %}
+                  <td><a href="{% url 'material-dearchive-operation' material.number op.id %}">Dearchiwizuj</a></td>
+                  {% else %}
+                  <td><a href="{% url 'material-archive-operation' material.number op.id %}">Archiwizuj</a></td>
+                  {% endif %}
+              </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7">Brak operacji.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

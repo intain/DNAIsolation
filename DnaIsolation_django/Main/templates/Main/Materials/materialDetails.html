@@ -4,7 +4,7 @@
 
     <h1>Materiał</h1>
     <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-5">
             <h4>Numer</h4>
             <p>{{ material.number }}</p>
 
@@ -21,7 +21,7 @@
             <p>{{ material.action }}</p>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-5">
           <h4>Zlecający</h4>
           <p>{{ material.supplier.name }}</p>
 
@@ -36,7 +36,7 @@
 
       </div>
 
-      <div class="col-md-3">
+      <div class="col-md-2">
           <a href="{% url 'material-delete-confirm' material.number %}">
               <button class="btn btn-block my-2">Usuń</button>
           </a>
@@ -50,9 +50,40 @@
     </div>
 
     <h2>Uwagi</h2>
-    <div class="col-md-9">
+    <div class="col-md-10">
             {{material.notes}}
     </div>
-</div>
+
+    <h2>Operacje</h2>
+    <div class="col-md-10">
+      <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                  <th>Lot</th>
+                  <th>Data dostawy</th>
+                  <th>Data ważności</th>
+                  <th>Data otwarcia</th>
+                  <th>Stan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for op in operations %}
+              <tr style="color: {% if op.is_archived %}silver{% else %}black{% endif %}">
+                  <td>{{ op.flight }}</td>
+                  <td>{{ op.deliveryDate }}</td>
+                  <td>{{ op.expirationDate }}</td>
+                  <td>{{ op.openDate }}</td>
+                  <td>{{ op.count }}</td>
+              </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5">Brak operacji.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
 
 {% endblock %}

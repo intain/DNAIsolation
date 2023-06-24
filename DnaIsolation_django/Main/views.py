@@ -7,11 +7,12 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from . import forms, models
 from django.contrib import messages
+from datetime import date
 
 
 @login_required
 def orders(request):
-    ordersToDisplay = models.Order.objects.all()
+    ordersToDisplay = [(order, models.LinkedFile.objects.filter(order=order)) for order in models.Order.objects.all()]
 
     if request.method == 'POST':
         form = forms.OrderSearchForm(request.POST)
@@ -219,7 +220,7 @@ def orderEditCompany(request, pk):
 
 @login_required
 def materials(request):
-    materialsToDisplay = models.Material.objects.all()
+    materialsToDisplay = [(mat, mat.get_count()) for mat in models.Material.objects.all()]
 
     if request.method == 'POST':
         form = forms.MaterialSearchForm(request.POST)
@@ -246,52 +247,11 @@ def materials(request):
 
 
 @login_required
-def materialSelectCompany(request):
-    if request.method == 'POST':
-        form = forms.CompanySelectForm(request.POST)
-        if form.is_valid():
-            company = form.cleaned_data.get('selected_company')
-            return redirect('material-create', pk=company.id)
-
-    else:
-        form = forms.CompanySelectForm()
-
-    return render(request, 'Main/Materials/materialSelectCompany.html', {'company_select_form': form })
-
-
-@login_required
-def materialCreateNewCompany(request):
-    if request.method == 'POST':
-        material_form = forms.MaterialCreateForm(request.POST, prefix='material')
-        company_form = forms.CompanyCreateForm(request.POST, prefix='company')
-        if material_form.is_valid() and company_form.is_valid():
-            company = company_form.save()
-            material = material_form.save()
-            material.commissioner = company
-            material.save()
-
-            messages.add_message(request, messages.SUCCESS, f'Pomyślnie dodano materiał.')
-            redirect('main-orders')
-    else:
-        material_form = forms.MaterialCreateForm(prefix='material')
-        company_form = forms.CompanyCreateForm(prefix='company')
-
-    context = {
-        'material_form': material_form,
-        'company_form': company_form
-    }
-
-    return render(request, 'Main/Materials/materialCreateNewCompany.html', context)
-
-
-@login_required
-def materialCreate(request, pk):
+def materialCreate(request):
     if request.method == 'POST':
         form = forms.MaterialCreateForm(request.POST)
         if form.is_valid():
             material = form.save()
-            company = get_object_or_404(models.Company, pk=pk)
-            material.supplier = company
             material.save()
 
             messages.add_message(request, messages.SUCCESS, f'Pomyślnie dodano materiał.')
@@ -366,9 +326,80 @@ def materialEditCompanyCheck(request, pk):
 
     return render(request, 'Main/Materials/materialEditCompanyCheck.html', {'company_select_form': form, 'company': material.supplier})
 
+
+@login_required
+def materialAddOperation(request, pk):
+    material = get_object_or_404(models.Material, pk=pk)
+
+    if request.method == 'POST':
+        form = forms.OperationForm(request.POST)
+        if form.is_valid():
+            operation = form.save()
+            material.operations.add(operation)
+            material.save()
+
+            log_message = models.OperationLogMessage()
+            log_message.message = f"{date.today()} użytkownik {request.user.get_username()} dodał {operation.count} zestawów {material.name} do magazynu"
+            log_message.save()
+
+            messages.add_message(request, messages.SUCCESS, f'Pomyślnie dodano operację.')
+            return redirect('main-materials')
+    else:
+        form = forms.OperationForm()
+
+    context = {
+        'form': form,
+    }
+
+    return render(request, 'Main/Materials/materialAddOperation.html', context)
+
+
+@login_required
+def materialOperationList(request, pk):
+    material = get_object_or_404(models.Material, pk=pk)
+    operations = material.operations.all()
+    return render(request, 'Main/Materials/materialOperationList.html', {'material': material, 'operations': operations})
+
+
+def materialDeleteOperation(request, mat_pk, op_id):
+    material = get_object_or_404(models.Material, pk=mat_pk)
+    operation = get_object_or_404(models.Operation, pk=op_id)
+
+    material.operations.remove(operation)
+    operation.delete()
+    material.save()
+
+    return redirect(materialOperationList, pk=mat_pk)
+
+
+def materialArchiveOperation(request, mat_pk, op_id):
+    operation = get_object_or_404(models.Operation, pk=op_id)
+
+    operation.is_archived = True
+    operation.save()
+
+    return redirect(materialOperationList, pk=mat_pk)
+
+
+def materialDearchiveOperation(request, mat_pk, op_id):
+    operation = get_object_or_404(models.Operation, pk=op_id)
+
+    operation.is_archived = False
+    operation.save()
+
+    return redirect(materialOperationList, pk=mat_pk)
+
+
+@login_required
+def operationLog(request):
+    context = {
+        'operations': models.OperationLogMessage.objects.all(),
+    }
+
+    return render(request, 'Main/Materials/operations.html', context)
+
+
 # *** FILES ****
-
-
 @login_required
 def files(request):
 
@@ -454,3 +485,5 @@ def fileAdd(request):
     }
 
     return render(request, 'Main/Files/fileAdd.html', context)
+
+

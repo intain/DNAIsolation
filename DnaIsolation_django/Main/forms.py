@@ -21,7 +21,7 @@ class OrderCreationForm(forms.ModelForm):
        choices=[
             ("Genomed", "Genomed"),
             ("A&A", "A&A")])
-    finishDate = forms.DateField(label="Data wykonania", widget=DateInput)
+    receiveDate = forms.DateField(label="Data otrzymania", widget=DateInput)
     status = forms.ChoiceField(label="Status",
        choices=[
             ("Oczekuje", "Oczekuje"),
@@ -40,9 +40,9 @@ class OrderCreationForm(forms.ModelForm):
 
     class Meta:
         model = models.Order
-        fields = ['number', 'contractor', 'finishDate', 'status', 'notes', 'files']
+        fields = ['number', 'contractor', 'receiveDate', 'status', 'notes', 'files']
         widgets = {
-            'finishDate': forms.widgets.DateInput(attrs={'type': 'date'})
+            'receiveDate': forms.widgets.DateInput(attrs={'type': 'date'})
         }
 
 
@@ -89,6 +89,7 @@ class MaterialSearchForm(forms.Form):
     name = forms.CharField(label="Nazwa", required=False)
     supplier_name = forms.CharField(label="Dostawca", required=False)
 
+
 class MaterialCreateForm(forms.ModelForm):
         number = forms.IntegerField(label="Numer")
         name = forms.CharField(label="Nazwa odczynnika")
@@ -96,18 +97,11 @@ class MaterialCreateForm(forms.ModelForm):
             label="Jednostka", choices=[
                 ("Liczba reakcji", "Liczba reakcji"),
                 ("Zestaw", "Zestaw")])
-        count = forms.IntegerField(label="Liczba")
-        action = forms.ChoiceField(
-            label="Operacja", choices=[
-                ("Dodanie", "Dodanie"),
-                ("Usunięcie", "Usunięcie")])
         notes = forms.CharField(label='Uwagi', widget=forms.Textarea(attrs={'rows': 5, 'cols': 40}), required=False)
-
-
 
         class Meta:
             model = models.Material
-            fields = ['number', 'name', 'unit', 'count', 'action', 'notes']
+            fields = ['number', 'name', 'unit', 'notes']
 
 # *** FILES ***
 
@@ -123,3 +117,21 @@ class FileAddForm(forms.ModelForm):
     class Meta:
         model = models.SimpleFile
         fields = ['name', 'file']
+
+
+class OperationForm(forms.ModelForm):
+    flight = forms.CharField(label="Lot")
+    deliveryDate = forms.DateField(label="Data dostawy", widget=DateInput)
+    expirationDate = forms.DateField(label="Data ważności", widget=DateInput)
+    openDate = forms.DateField(label="Data otwarcia", widget=DateInput)
+    count = forms.IntegerField(label="Stan")
+
+
+    class Meta:
+        model = models.Operation
+        fields = ['flight', 'deliveryDate', 'expirationDate', 'openDate', 'count']
+        widgets = {
+            'deliveryDate': forms.widgets.DateInput(attrs={'type': 'date'}),
+            'expirationDate': forms.widgets.DateInput(attrs={'type': 'date'}),
+            'openDate': forms.widgets.DateInput(attrs={'type': 'date'})
+        }

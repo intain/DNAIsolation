@@ -1,5 +1,6 @@
 import os
 
+import mimetypes
 from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -429,16 +430,23 @@ def files(request):
 @login_required
 def downloadLinkedFile(request, pk):
     linked_file = get_object_or_404(models.LinkedFile, pk=pk)
-    response = HttpResponse(linked_file.file)
-    response['Content-Disposition'] = f'attachment; filename="{linked_file.file.name}"'
-    return response
+    return downloadFile(linked_file.file.path)
 
 
 @login_required
 def downloadSimpleFile(request, pk):
     file = get_object_or_404(models.SimpleFile, pk=pk)
-    response = HttpResponse(file.file)
-    response['Content-Disposition'] = f'attachment; filename="{file.file.name}"'
+    return downloadFile(file.file.path)
+
+
+def downloadFile(file_path):
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type is None:
+        mime_type = 'application/octet-stream'
+
+    file = open(file_path, 'rb')
+    response = FileResponse(file, content_type=mime_type)
+
     return response
 
 

@@ -15,6 +15,7 @@
                   <th>Stan</th>
                   <th>Usuń</th>
                   <th>Archiwizuj</th>
+                  <th>Edytuj</th>
               </tr>
             </thead>
             <tbody>
@@ -31,6 +32,7 @@
                   {% else %}
                   <td><a href="{% url 'material-archive-operation' material.number op.id %}">Archiwizuj</a></td>
                   {% endif %}
+                  <td><a href="{% url 'material-edit-operation' material.number op.id %}">Edytuj</a></td>
               </tr>
               {% empty %}
                 <tr>

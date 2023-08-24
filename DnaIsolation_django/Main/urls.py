@@ -34,6 +34,7 @@ urlpatterns = [
     path('material/delete_operation/<int:mat_pk>/<int:op_id>/', views.materialDeleteOperation, name='material-delete-operation'),
     path('material/archive_operation/<int:mat_pk>/<int:op_id>/', views.materialArchiveOperation, name='material-archive-operation'),
     path('material/dearchive_operation/<int:mat_pk>/<int:op_id>/', views.materialDearchiveOperation, name='material-dearchive-operation'),
+    path('material/edit_operation/<int:mat_pk>/<int:op_id>/', views.materialEditOperation, name='material-edit-operation'),
 
     path('operation_log', views.operationLog, name='main-operations'),
 ]

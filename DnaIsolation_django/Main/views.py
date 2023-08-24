@@ -1,7 +1,7 @@
 import os
 
 import mimetypes
-from django.db.models import Q
+from django.db.models import Q, Min, Max
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -13,7 +13,7 @@ from datetime import date
 
 @login_required
 def orders(request):
-    ordersToDisplay = [(order, models.LinkedFile.objects.filter(order=order)) for order in models.Order.objects.all()]
+    # ordersToDisplay = [(order, models.LinkedFile.objects.filter(order=order)) for order in models.Order.objects.all()]
 
     if request.method == 'POST':
         form = forms.OrderSearchForm(request.POST)
@@ -21,23 +21,32 @@ def orders(request):
             commissioner = form.cleaned_data['commissioner']
             status = form.cleaned_data['status']
 
-            if status == "Dowolny":
-                ordersToDisplay = models.Order.objects.filter(
-                    Q(commissioner__name__icontains=commissioner)
-                )
+            if commissioner != "":
+                if status == "Dowolny":
+                    orders = models.Order.objects.filter(
+                        Q(commissioner__name__icontains=commissioner)
+                    )
+                else:
+                    orders = models.Order.objects.filter(
+                        Q(commissioner__name__icontains=commissioner) & Q(status__icontains=status)
+                    )
             else:
-                ordersToDisplay = models.Order.objects.filter(
-                    Q(commissioner__name__icontains=commissioner) & Q(status__icontains=status)
-                )
+                if status == "Dowolny":
+                    orders = models.Order.objects.all()
+                else:
+                    orders = models.Order.objects.filter(
+                        Q(status__icontains=status)
+                    )
 
-            messages.add_message(request, messages.SUCCESS, f'Znaleziono {ordersToDisplay.count()} rezultatów.')
+            messages.add_message(request, messages.SUCCESS, f'Znaleziono {orders.count()} rezultatów.')
 
             # return render(request, 'order_.html', {'search_results': objects})
     else:
         form = forms.OrderSearchForm()
+        orders = models.Order.objects.all()
 
     context = {
-        'orders': ordersToDisplay,
+        'orders': [(order, models.LinkedFile.objects.filter(order=order)) for order in orders.order_by('-receiveDate')],
         'search_form': form
     }
 
@@ -77,7 +86,11 @@ def orderCreate(request, pk):
             linkFiles(order, request)
             order.save()
 
-            messages.add_message(request, messages.SUCCESS, f'Pomyślnie dodano zamówienie.')
+            log_message = models.OperationLogMessage()
+            log_message.message = f"{date.today()} użytkownik {request.user.get_username()} dodał zlecenie {order.number} od {order.commissioner.name}"
+            log_message.save()
+
+            messages.add_message(request, messages.SUCCESS, f'Pomyślnie dodano zlecenie.')
             return redirect('main-orders')
     else:
         form = forms.OrderCreationForm()
@@ -101,7 +114,11 @@ def orderCreateNewCompany(request):
             order.save()
             linkFiles(order, request)
 
-            messages.add_message(request, messages.SUCCESS, f'Pomyślnie dodano zamówienie.')
+            log_message = models.OperationLogMessage()
+            log_message.message = f"{date.today()} użytkownik {request.user.get_username()} dodał zlecenie {order.number} od {order.commissioner.name}"
+            log_message.save()
+
+            messages.add_message(request, messages.SUCCESS, f'Pomyślnie dodano zlecenie.')
             redirect('main-orders')
     else:
         order_form = forms.OrderCreationForm(prefix='order')
@@ -149,10 +166,15 @@ def deleteAttachedFiles(order):
 
 @login_required
 def orderDelete(request, pk):
+    log_message = models.OperationLogMessage()
+    log_message.message = f"{date.today()} użytkownik {request.user.get_username()} usunął zlecenie {obj.number} od {obj.commissioner.name}"
+    log_message.save()
+
     obj = get_object_or_404(models.Order, pk=pk)
     deleteAttachedFiles(obj)
     obj.delete()
     messages.add_message(request, messages.SUCCESS, 'Pomyślnie usunięto zlecenie')
+
     return redirect('main-orders')
 
 
@@ -221,26 +243,26 @@ def orderEditCompany(request, pk):
 
 @login_required
 def materials(request):
-    materialsToDisplay = [(mat, mat.get_count()) for mat in models.Material.objects.all()]
-
     if request.method == 'POST':
         form = forms.MaterialSearchForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
-            supplier_name = form.cleaned_data['supplier_name']
 
-            materialsToDisplay = models.Material.objects.filter(
-                Q(name__icontains=name) & Q(supplier__name__icontains=supplier_name)
+            materials = models.Material.objects.filter(
+                Q(name__icontains=name)
             )
 
-            messages.add_message(request, messages.SUCCESS, f'Znaleziono {materialsToDisplay.count()} rezultatów.')
+            messages.add_message(request, messages.SUCCESS, f'Znaleziono {materials.count()} rezultatów.')
 
             # return render(request, 'order_.html', {'search_results': objects})
+        else:
+            materials = models.Material.objects.all()
     else:
         form = forms.MaterialSearchForm()
+        materials = models.Material.objects.all()
 
     context = {
-        'materials': materialsToDisplay,
+        'materials': [(mat, mat.get_count()) for mat in materials.annotate(delivery_date=Max('operations__deliveryDate')).order_by('-delivery_date')],
         'search_form': form
     }
 
@@ -270,7 +292,13 @@ def materialCreate(request):
 @login_required
 def materialDetailView(request, pk):
     material = get_object_or_404(models.Material, pk=pk)
-    return render(request, 'Main/Materials/materialDetails.html', {'material': material})
+
+    count = 0
+    for op in material.operations.all():
+        if not op.is_archived:
+            count += op.count
+
+    return render(request, 'Main/Materials/materialDetails.html', {'material': material, 'count': count})
 
 
 @login_required
@@ -366,9 +394,15 @@ def materialDeleteOperation(request, mat_pk, op_id):
     material = get_object_or_404(models.Material, pk=mat_pk)
     operation = get_object_or_404(models.Operation, pk=op_id)
 
+    log_message = models.OperationLogMessage()
+    log_message.message = f"{date.today()} użytkownik {request.user.get_username()} usunął {operation.count} zestawów {material.name} z magazynu"
+    log_message.save()
+
+
     material.operations.remove(operation)
     operation.delete()
     material.save()
+
 
     return redirect(materialOperationList, pk=mat_pk)
 
@@ -391,6 +425,20 @@ def materialDearchiveOperation(request, mat_pk, op_id):
     return redirect(materialOperationList, pk=mat_pk)
 
 
+def materialEditOperation(request, mat_pk, op_id):
+    operation = get_object_or_404(models.Operation, pk=op_id)
+
+    form = forms.OperationForm(request.POST or None, instance=operation)
+    if form.is_valid():
+        form.save()
+        messages.add_message(request, messages.SUCCESS, 'Pomyślnie zaktualizowano operacje.')
+        return redirect(reverse('material-operation-list', args=[mat_pk]))
+
+    context = {
+        'form': form
+    }
+
+    return render(request, 'Main/Materials/materialEdit.html', context)
 @login_required
 def operationLog(request):
     context = {

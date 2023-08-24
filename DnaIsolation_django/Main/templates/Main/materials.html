@@ -21,7 +21,7 @@
                   <td>{{ material.0.name }}</td>
                   <td>{{ material.1 }}</td>
                   <td>{{ material.0.unit }}</td>
-                  <td><a href="{% url 'material-add-operation' material.0.number %}">Dodaj</a>/<a href="{% url 'material-operation-list' material.0.number %}">Usuń</a></td>
+                  <td><a href="{% url 'material-add-operation' material.0.number %}">Dodaj</a>/<a href="{% url 'material-operation-list' material.0.number %}">Edytuj</a></td>
                   <td><a href="{% url 'material-details' material.0.number %}">Szczegóły</a></td>
               </tr>
               {% empty %}

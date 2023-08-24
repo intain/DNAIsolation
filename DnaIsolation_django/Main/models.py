@@ -40,7 +40,7 @@ class Operation(models.Model):
     flight = models.CharField(max_length=64)
     deliveryDate = models.DateField()
     expirationDate = models.DateField()
-    openDate = models.DateField()
+    openDate = models.DateField(null=True, blank=True)
     count = models.IntegerField()
     is_archived = models.BooleanField(default=False)
 

@@ -4,7 +4,7 @@
 
     <h1>Materiał</h1>
     <div class="row">
-      <div class="col-md-5">
+      <div class="col-md-10">
             <h4>Numer</h4>
             <p>{{ material.number }}</p>
 
@@ -15,36 +15,17 @@
             <p>{{ material.unit }}</p>
 
             <h4>Liczba</h4>
-            <p>{{ material.count }}</p>
+            <p>{{ count }}</p>
 
             <h4>Operacja</h4>
             <p>{{ material.action }}</p>
       </div>
-
-      <div class="col-md-5">
-          <h4>Zlecający</h4>
-          <p>{{ material.supplier.name }}</p>
-
-          <h4>Osoba kontaktowa</h4>
-          <p>{{ material.supplier.pointOfContact }}</p>
-
-          <h4>E-Mail</h4>
-          <p>{{ material.supplier.email }}</p>
-
-          <h4>Telefon</h4>
-          <p>{{ material.supplier.phoneNumber }}</p>
-
-      </div>
-
       <div class="col-md-2">
           <a href="{% url 'material-delete-confirm' material.number %}">
               <button class="btn btn-block my-2">Usuń</button>
           </a>
           <a href="{% url 'material-edit' material.number %}">
               <button class="btn btn-block my-2">Edytuj materiał</button>
-          </a>
-          <a href="{% url 'material-edit-company-check' material.number %}">
-              <button class="btn btn-block my-2">Edytuj dostawcę</button>
           </a>
       </div>
     </div>
@@ -68,7 +49,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for op in operations %}
+              {% for op in material.operations.all %}
               <tr style="color: {% if op.is_archived %}silver{% else %}black{% endif %}">
                   <td>{{ op.flight }}</td>
                   <td>{{ op.deliveryDate }}</td>

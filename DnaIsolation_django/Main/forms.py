@@ -87,7 +87,6 @@ class OrderSearchForm(forms.Form):
 
 class MaterialSearchForm(forms.Form):
     name = forms.CharField(label="Nazwa", required=False)
-    supplier_name = forms.CharField(label="Dostawca", required=False)
 
 
 class MaterialCreateForm(forms.ModelForm):
@@ -123,9 +122,8 @@ class OperationForm(forms.ModelForm):
     flight = forms.CharField(label="Lot")
     deliveryDate = forms.DateField(label="Data dostawy", widget=DateInput)
     expirationDate = forms.DateField(label="Data ważności", widget=DateInput)
-    openDate = forms.DateField(label="Data otwarcia", widget=DateInput)
+    openDate = forms.DateField(label="Data otwarcia", widget=DateInput, required=False)
     count = forms.IntegerField(label="Stan")
-
 
     class Meta:
         model = models.Operation

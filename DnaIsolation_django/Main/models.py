@@ -79,5 +79,6 @@ class SimpleFile(models.Model):
 
 class OperationLogMessage(models.Model):
     message = models.CharField(max_length=64)
+    date = models.DateField(null=True)
 
 

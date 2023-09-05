@@ -87,6 +87,7 @@ def orderCreate(request, pk):
             order.save()
 
             log_message = models.OperationLogMessage()
+            log_message.date = date.today()
             log_message.message = f"{date.today()} użytkownik {request.user.get_username()} dodał zlecenie {order.number} od {order.commissioner.name}"
             log_message.save()
 
@@ -115,6 +116,7 @@ def orderCreateNewCompany(request):
             linkFiles(order, request)
 
             log_message = models.OperationLogMessage()
+            log_message.date = date.today()
             log_message.message = f"{date.today()} użytkownik {request.user.get_username()} dodał zlecenie {order.number} od {order.commissioner.name}"
             log_message.save()
 
@@ -167,6 +169,7 @@ def deleteAttachedFiles(order):
 @login_required
 def orderDelete(request, pk):
     log_message = models.OperationLogMessage()
+    log_message.date = date.today()
     log_message.message = f"{date.today()} użytkownik {request.user.get_username()} usunął zlecenie {obj.number} od {obj.commissioner.name}"
     log_message.save()
 
@@ -262,7 +265,7 @@ def materials(request):
         materials = models.Material.objects.all()
 
     context = {
-        'materials': [(mat, mat.get_count()) for mat in materials.annotate(delivery_date=Max('operations__deliveryDate')).order_by('-delivery_date')],
+        'materials': [(mat, mat.get_count()) for mat in materials.annotate(delivery_date=Min('operations__deliveryDate')).order_by('-delivery_date')],
         'search_form': form
     }
 
@@ -298,7 +301,13 @@ def materialDetailView(request, pk):
         if not op.is_archived:
             count += op.count
 
-    return render(request, 'Main/Materials/materialDetails.html', {'material': material, 'count': count})
+    context = {
+        'material': material,
+        'operations': material.operations.all().order_by('-deliveryDate'),
+        'count': count
+    }
+
+    return render(request, 'Main/Materials/materialDetails.html', context)
 
 
 @login_required
@@ -368,6 +377,7 @@ def materialAddOperation(request, pk):
             material.save()
 
             log_message = models.OperationLogMessage()
+            log_message.date = date.today()
             log_message.message = f"{date.today()} użytkownik {request.user.get_username()} dodał {operation.count} zestawów {material.name} do magazynu"
             log_message.save()
 
@@ -386,7 +396,7 @@ def materialAddOperation(request, pk):
 @login_required
 def materialOperationList(request, pk):
     material = get_object_or_404(models.Material, pk=pk)
-    operations = material.operations.all()
+    operations = material.operations.all().order_by('-deliveryDate')
     return render(request, 'Main/Materials/materialOperationList.html', {'material': material, 'operations': operations})
 
 
@@ -395,6 +405,7 @@ def materialDeleteOperation(request, mat_pk, op_id):
     operation = get_object_or_404(models.Operation, pk=op_id)
 
     log_message = models.OperationLogMessage()
+    log_message.date = date.today()
     log_message.message = f"{date.today()} użytkownik {request.user.get_username()} usunął {operation.count} zestawów {material.name} z magazynu"
     log_message.save()
 
@@ -442,7 +453,7 @@ def materialEditOperation(request, mat_pk, op_id):
 @login_required
 def operationLog(request):
     context = {
-        'operations': models.OperationLogMessage.objects.all(),
+        'operations': models.OperationLogMessage.objects.all().order_by('-date')
     }
 
     return render(request, 'Main/Materials/operations.html', context)
